@@ -17,48 +17,142 @@
 
     <meta
         name="description"
-        content="ARROWHEAD — Infinite Logic. A futuristic Tap-Away puzzle game."
+        content="ARROWHEAD — Infinite Tap Away Logic Game"
     >
 
     <title>ARROWHEAD — Infinite Logic</title>
 
-    <link
-        rel="manifest"
-        href="manifest.json"
-    >
+    <link rel="manifest" href="manifest.json">
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+        /* =====================================================
+           CREATOR CREDIT
+        ===================================================== */
+
+        .creator-credit {
+
+            margin-top: 28px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid
+                rgba(255,255,255,0.12);
+
+            text-align: center;
+
+        }
+
+
+        .creator-label {
+
+            font-size: 10px;
+
+            letter-spacing: 3px;
+
+            color: rgba(255,255,255,0.45);
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .creator-name {
+
+            font-size: 15px;
+
+            letter-spacing: 1px;
+
+            color: #ffffff;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .creator-github {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            letter-spacing: 1px;
+
+            padding: 8px 14px;
+
+            border: 1px solid
+                rgba(255,255,255,0.2);
+
+            border-radius: 8px;
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+
+        }
+
+
+        .creator-github:hover {
+
+            background:
+                rgba(255,255,255,0.08);
+
+            border-color:
+                rgba(255,255,255,0.5);
+
+            transform:
+                translateY(-2px);
+
+        }
+
+
+        .creator-github svg {
+
+            width: 17px;
+
+            height: 17px;
+
+            display: block;
+
+        }
+
+    </style>
 
 </head>
 
 
 <body>
 
+<div id="app">
+
+
     <!-- =====================================================
-         TOP BAR
+         TOP HEADER
     ====================================================== -->
 
     <header class="topbar">
 
         <div class="brand">
 
-            <div class="brand-logo">
-                ◆
+            <div class="logo">
+                ARROWHEAD
             </div>
 
-            <div>
-
-                <div class="brand-title">
-                    ARROWHEAD
-                </div>
-
-                <div class="brand-subtitle">
-                    INFINITE LOGIC
-                </div>
-
+            <div class="subtitle">
+                INFINITE LOGIC
             </div>
 
         </div>
@@ -66,9 +160,7 @@
 
         <div class="level-display">
 
-            <span>
-                LEVEL
-            </span>
+            <span>LEVEL</span>
 
             <strong id="level">
                 1
@@ -77,160 +169,182 @@
         </div>
 
 
-        <div class="lives-display">
-
-            <span>
-                LIVES
-            </span>
-
-            <strong id="lives">
-                ❤️❤️❤️
-            </strong>
-
+        <div
+            id="lives"
+            class="lives"
+        >
+            ♥ ♥ ♥
         </div>
 
     </header>
 
 
+
     <!-- =====================================================
-         LOGIN SCREEN
+         LOGIN
     ====================================================== -->
 
-    <main
+    <section
         id="loginScreen"
-        class="screen login-screen"
+        class="screen"
     >
 
-        <div class="login-card">
+        <div class="login-panel panel">
 
-            <div class="login-symbol">
-                ↑
+            <div class="game-mark">
+
+                <span>↑</span>
+                <span>→</span>
+                <span>↓</span>
+                <span>←</span>
+
             </div>
 
-            <h1>
+
+            <div class="big-title">
                 ARROWHEAD
-            </h1>
-
-            <p class="login-tagline">
-                INFINITE LOGIC
-            </p>
-
-            <p class="login-description">
-                Tap the arrows and clear the path.
-            </p>
+            </div>
 
 
-            <div class="login-form">
+            <div class="tagline">
+                TAP • CLEAR • ESCAPE
+            </div>
 
-                <input
-                    id="playerName"
-                    type="text"
-                    placeholder="Enter your name"
-                    maxlength="20"
-                    autocomplete="off"
-                >
 
-                <button
-                    type="button"
-                    onclick="startGame()"
-                >
-                    START GAME
-                </button>
+            <input
+                id="playerName"
+                type="text"
+                placeholder="PLAYER NAME"
+                maxlength="20"
+                autocomplete="off"
+            >
 
+
+            <button
+                id="enterButton"
+                onclick="startGame()"
+            >
+                ENTER GAME
+            </button>
+
+
+            <div class="small-text">
+                Every arrow must find a clear path.
             </div>
 
         </div>
 
-    </main>
+    </section>
+
 
 
     <!-- =====================================================
-         GAME SCREEN
+         GAME
     ====================================================== -->
 
-    <main
+    <section
         id="gameScreen"
-        class="screen game-screen hidden"
+        class="game-screen hidden"
     >
 
-        <div
-            id="message"
-            class="game-message"
-        >
-            Clear every arrow.
+
+        <div class="instruction-bar">
+
+            <span id="message">
+                Tap an arrow with a clear path.
+            </span>
+
         </div>
 
 
-        <div
+
+        <!-- =================================================
+             GAME BOARD
+        ================================================== -->
+
+        <main
             id="gameArea"
             class="game-area"
         >
 
-            <!-- Background nature animation -->
+
+            <!-- Animated background -->
 
             <div
                 id="natureLayer"
                 class="nature-layer"
+                aria-hidden="true"
             >
 
-                <div class="nature-cloud cloud-one">
-                    ☁
+                <div class="cloud cloud-one"></div>
+
+                <div class="cloud cloud-two"></div>
+
+                <div class="bird bird-one">
+
+                    <span></span>
+                    <span></span>
+
                 </div>
 
-                <div class="nature-cloud cloud-two">
-                    ☁
+                <div class="bird bird-two">
+
+                    <span></span>
+                    <span></span>
+
                 </div>
 
-                <div class="nature-bird bird-one">
-                    🕊
+                <div class="butterfly butterfly-one">
+
+                    <span></span>
+                    <span></span>
+
                 </div>
 
-                <div class="nature-bird bird-two">
-                    🕊
+                <div class="butterfly butterfly-two">
+
+                    <span></span>
+                    <span></span>
+
                 </div>
 
-                <div class="nature-butterfly butterfly-one">
-                    🦋
-                </div>
-
-                <div class="nature-butterfly butterfly-two">
-                    🦋
-                </div>
-
-                <div class="nature-rabbit rabbit-one">
+                <div class="rabbit rabbit-one">
                     🐇
                 </div>
 
-                <div class="nature-deer deer-one">
+                <div class="deer deer-one">
                     🦌
                 </div>
 
-                <div class="nature-leaves leaves-one">
+                <div class="leaf leaf-one">
                     🍃
                 </div>
 
-                <div class="nature-leaves leaves-two">
-                    🍂
+                <div class="leaf leaf-two">
+                    🍃
                 </div>
 
             </div>
 
 
-            <!-- Arrow board -->
 
-            <div
-                id="arrowBoard"
-                class="arrow-board"
-            ></div>
+            <!-- Actual Tap Away board -->
 
-        </div>
+            <div id="arrowBoard"></div>
 
 
-        <!-- Game statistics -->
+        </main>
 
-        <div class="game-stats">
 
-            <div class="stat">
+
+        <!-- =================================================
+             GAME FOOTER
+        ================================================== -->
+
+        <footer class="game-footer">
+
+
+            <div class="stat-box">
 
                 <span>
                     SCORE
@@ -243,7 +357,7 @@
             </div>
 
 
-            <div class="stat">
+            <div class="stat-box">
 
                 <span>
                     PROGRESS
@@ -256,21 +370,24 @@
             </div>
 
 
-            <div class="stat">
+            <div class="stat-box">
 
                 <span>
                     TIME
                 </span>
 
                 <strong id="timer">
-                    00:00
+                    0.00
                 </strong>
 
             </div>
 
-        </div>
 
-    </main>
+        </footer>
+
+
+    </section>
+
 
 
     <!-- =====================================================
@@ -279,29 +396,35 @@
 
     <section
         id="dashboard"
-        class="screen dashboard hidden"
+        class="screen hidden"
     >
 
-        <div class="dashboard-card">
+        <div class="dashboard-panel panel">
 
-            <p class="dashboard-label">
+
+            <div class="dashboard-title">
                 PLAYER DASHBOARD
-            </p>
-
-            <h2 id="welcome">
-                Welcome!
-            </h2>
+            </div>
 
 
-            <div class="dashboard-stats">
+            <div
+                id="welcome"
+                class="welcome"
+            >
+            </div>
+
+
+
+            <div class="stats-grid">
+
 
                 <div class="dashboard-stat">
 
                     <span>
-                        SCORE
+                        HIGH SCORE
                     </span>
 
-                    <strong id="dashboardScore">
+                    <strong id="highScore">
                         0
                     </strong>
 
@@ -311,24 +434,11 @@
                 <div class="dashboard-stat">
 
                     <span>
-                        LEVEL
+                        HIGH LEVEL
                     </span>
 
-                    <strong id="dashboardLevel">
+                    <strong id="highLevel">
                         1
-                    </strong>
-
-                </div>
-
-
-                <div class="dashboard-stat">
-
-                    <span>
-                        MOVES
-                    </span>
-
-                    <strong id="dashboardMoves">
-                        0
                     </strong>
 
                 </div>
@@ -340,21 +450,62 @@
                         GAMES
                     </span>
 
-                    <strong id="dashboardGames">
+                    <strong id="gamesPlayed">
                         0
                     </strong>
 
                 </div>
 
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        ACCURACY
+                    </span>
+
+                    <strong id="accuracy">
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        BEST TIME
+                    </span>
+
+                    <strong id="bestTime">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        PERFECT LEVELS
+                    </span>
+
+                    <strong id="perfectLevels">
+                        0
+                    </strong>
+
+                </div>
+
+
             </div>
 
 
+
             <button
-                type="button"
                 onclick="playAgain()"
             >
                 PLAY AGAIN
             </button>
+
 
 
             <!-- =================================================
@@ -363,151 +514,126 @@
 
             <div class="creator-credit">
 
-                <div class="creator-line"></div>
-
-                <p class="creator-small">
+                <div class="creator-label">
                     CREATED &amp; DEVELOPED BY
-                </p>
+                </div>
 
-                <h3>
+
+                <div class="creator-name">
                     Mahalakshmi Kommaranahalli
-                </h3>
+                </div>
+
 
                 <a
+                    class="creator-github"
                     href="https://github.com/mahalakshmikommaranahalli9-cell"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="github-credit"
+                    aria-label="Mahalakshmi Kommaranahalli GitHub"
                 >
 
-                    <span class="github-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
 
-                            <path
-                                fill="currentColor"
-                                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.96.1-.74.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.73.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.39-5.25 5.67.41.35.78 1.05.78 2.12v3.14c0 .3.21.66.79.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
-                            />
+                        <path
+                            fill="currentColor"
+                            d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.88-1.36-3.88-1.36-.53-1.34-1.28-1.7-1.28-1.7-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.94 10.94 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.73.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.35.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+                        />
 
-                        </svg>
-                    </span>
+                    </svg>
 
-                    <span>
-                        GitHub
-                    </span>
-
-                    <span class="github-arrow">
-                        ↗
-                    </span>
+                    GitHub
 
                 </a>
 
-                <div class="creator-line"></div>
-
             </div>
+
 
         </div>
 
     </section>
+
 
 
     <!-- =====================================================
          GAME OVER
     ====================================================== -->
 
-    <section
+    <div
         id="gameOver"
-        class="screen game-over hidden"
+        class="overlay hidden"
     >
 
-        <div class="game-over-card">
+        <div class="gameover-panel panel">
 
-            <div class="game-over-symbol">
-                ×
-            </div>
 
-            <p class="game-over-label">
+            <div class="gameover-title">
                 GAME OVER
-            </p>
-
-            <h2>
-                OUT OF LIVES
-            </h2>
-
-            <p>
-                Final Score
-            </p>
-
-            <strong id="finalScore">
-                0
-            </strong>
-
-
-            <div class="game-over-buttons">
-
-                <button
-                    type="button"
-                    onclick="restartGame()"
-                >
-                    TRY AGAIN
-                </button>
-
-                <button
-                    type="button"
-                    onclick="showDashboard()"
-                >
-                    DASHBOARD
-                </button>
-
             </div>
+
+
+            <div
+                id="finalScore"
+                class="final-score"
+            >
+            </div>
+
+
+            <button
+                onclick="restartGame()"
+            >
+                RETRY
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="showDashboard()"
+            >
+                DASHBOARD
+            </button>
+
 
         </div>
 
-    </section>
+    </div>
 
 
-    <!-- =====================================================
-         SCRIPTS
-    ====================================================== -->
-
-    <script src="levels.js"></script>
-
-    <script src="game.js"></script>
+</div>
 
 
-    <!-- =====================================================
-         SERVICE WORKER
-    ====================================================== -->
 
-    <script>
+<!-- =======================================================
+     JAVASCRIPT
+======================================================== -->
 
-        if (
-            "serviceWorker" in navigator
-        ) {
 
-            window.addEventListener(
-                "load",
-                () => {
+<script src="levels.js"></script>
 
-                    navigator.serviceWorker
-                        .register("./sw.js")
-                        .catch(
-                            error => {
-                                console.log(
-                                    "Service Worker registration failed:",
-                                    error
-                                );
-                            }
-                        );
+<script src="game.js"></script>
 
-                }
-            );
+
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register("sw.js")
+                .catch(() => {});
 
         }
+    );
 
-    </script>
+}
+
+</script>
 
 
 </body>
