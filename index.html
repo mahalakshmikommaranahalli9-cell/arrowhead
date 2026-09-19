@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#050505"
+    >
+
+    <meta
+        name="description"
+        content="ARROWHEAD — Infinite Tap Away Logic Game"
+    >
+
+    <title>ARROWHEAD — Infinite Logic</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<div id="app">
+
+
+    <!-- =====================================================
+         TOP HEADER
+    ====================================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="logo">
+                ARROWHEAD
+            </div>
+
+            <div class="subtitle">
+                INFINITE LOGIC
+            </div>
+
+        </div>
+
+
+        <div class="level-display">
+
+            <span>LEVEL</span>
+
+            <strong id="level">
+                1
+            </strong>
+
+        </div>
+
+
+        <div
+            id="lives"
+            class="lives"
+        >
+            ♥ ♥ ♥
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
+
+    <section
+        id="loginScreen"
+        class="screen"
+    >
+
+        <div class="login-panel panel">
+
+            <div class="game-mark">
+                <span>↑</span>
+                <span>→</span>
+                <span>↓</span>
+                <span>←</span>
+            </div>
+
+
+            <div class="big-title">
+                ARROWHEAD
+            </div>
+
+
+            <div class="tagline">
+                TAP • CLEAR • ESCAPE
+            </div>
+
+
+            <input
+                id="playerName"
+                type="text"
+                placeholder="PLAYER NAME"
+                maxlength="20"
+                autocomplete="off"
+            >
+
+
+            <button
+                id="enterButton"
+                onclick="startGame()"
+            >
+                ENTER GAME
+            </button>
+
+
+            <div class="small-text">
+                Every arrow must find a clear path.
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         GAME
+    ====================================================== -->
+
+    <section
+        id="gameScreen"
+        class="game-screen hidden"
+    >
+
+
+        <div class="instruction-bar">
+
+            <span id="message">
+                Tap an arrow with a clear path.
+            </span>
+
+        </div>
+
+
+
+        <!-- =================================================
+             GAME BOARD
+        ================================================== -->
+
+        <main
+            id="gameArea"
+            class="game-area"
+        >
+
+
+            <!-- Animated background -->
+
+            <div
+                id="natureLayer"
+                class="nature-layer"
+                aria-hidden="true"
+            >
+
+                <div class="cloud cloud-one"></div>
+
+                <div class="cloud cloud-two"></div>
+
+                <div class="bird bird-one">
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div class="bird bird-two">
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div class="butterfly butterfly-one">
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div class="butterfly butterfly-two">
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div class="rabbit rabbit-one">
+                    🐇
+                </div>
+
+                <div class="deer deer-one">
+                    🦌
+                </div>
+
+                <div class="leaf leaf-one">
+                    🍃
+                </div>
+
+                <div class="leaf leaf-two">
+                    🍃
+                </div>
+
+            </div>
+
+
+
+            <!-- Actual Tap Away board -->
+
+            <div id="arrowBoard"></div>
+
+
+        </main>
+
+
+
+        <!-- =================================================
+             GAME FOOTER
+        ================================================== -->
+
+        <footer class="game-footer">
+
+
+            <div class="stat-box">
+
+                <span>
+                    SCORE
+                </span>
+
+                <strong id="score">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    PROGRESS
+                </span>
+
+                <strong id="progress">
+                    0 / 0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    TIME
+                </span>
+
+                <strong id="timer">
+                    0.00
+                </strong>
+
+            </div>
+
+
+        </footer>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
+
+    <section
+        id="dashboard"
+        class="screen hidden"
+    >
+
+        <div class="dashboard-panel panel">
+
+
+            <div class="dashboard-title">
+                PLAYER DASHBOARD
+            </div>
+
+
+            <div
+                id="welcome"
+                class="welcome"
+            >
+            </div>
+
+
+
+            <div class="stats-grid">
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        HIGH SCORE
+                    </span>
+
+                    <strong id="highScore">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        HIGH LEVEL
+                    </span>
+
+                    <strong id="highLevel">
+                        1
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        GAMES
+                    </span>
+
+                    <strong id="gamesPlayed">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        ACCURACY
+                    </span>
+
+                    <strong id="accuracy">
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        BEST TIME
+                    </span>
+
+                    <strong id="bestTime">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-stat">
+
+                    <span>
+                        PERFECT LEVELS
+                    </span>
+
+                    <strong id="perfectLevels">
+                        0
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+
+            <button
+                onclick="playAgain()"
+            >
+                PLAY AGAIN
+            </button>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         GAME OVER
+    ====================================================== -->
+
+    <div
+        id="gameOver"
+        class="overlay hidden"
+    >
+
+        <div class="gameover-panel panel">
+
+
+            <div class="gameover-title">
+                GAME OVER
+            </div>
+
+
+            <div
+                id="finalScore"
+                class="final-score"
+            >
+            </div>
+
+
+            <button
+                onclick="restartGame()"
+            >
+                RETRY
+            </button>
+
+
+            <button
+                class="secondary-button"
+                onclick="showDashboard()"
+            >
+                DASHBOARD
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =======================================================
+     JAVASCRIPT
+======================================================== -->
+
+
+<script src="levels.js"></script>
+
+<script src="game.js"></script>
+
+
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register("sw.js")
+                .catch(() => {});
+
+        }
+    );
+
+}
+
+</script>
+
+
+</body>
+
+</html>
