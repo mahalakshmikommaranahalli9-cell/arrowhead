@@ -1928,3 +1928,238 @@ button:active {
             0.01ms !important;
     }
 }
+/* =========================================================
+   ARROWHEAD — MOBILE RESPONSIVE FIX
+   Fix dashboard overflow on phones
+========================================================= */
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Main screens */
+#loginScreen,
+#gameScreen,
+#dashboard,
+#gameOver,
+#levelSelectScreen {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Dashboard itself */
+#dashboard {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/* Prevent desktop fixed widths from escaping */
+#dashboard > *,
+#dashboard .dashboard-container,
+#dashboard .dashboard-content,
+#dashboard .dashboard-card,
+#dashboard .dashboard-panel,
+#dashboard .stats,
+#dashboard .stats-grid {
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Dashboard headings */
+#dashboard h1,
+#dashboard h2,
+#dashboard h3 {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* Stats cards */
+#dashboard .stat-card,
+#dashboard .stat,
+#dashboard .card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Dynamically added badges */
+#arrowheadBadgePanel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow: hidden;
+}
+
+/* Dynamically added scoreboard */
+#arrowheadScoreboard {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow: hidden;
+}
+
+/* Scoreboard rows */
+.arrowhead-score-row {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Creator section */
+#dashboard img,
+#dashboard svg {
+    max-width: 100%;
+}
+
+/* Buttons */
+#dashboard button {
+    max-width: 100%;
+}
+
+/* =========================================================
+   PHONE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    #dashboard {
+        width: 100%;
+        padding: 20px 14px 40px;
+    }
+
+    /* Dashboard title */
+    #dashboard h1 {
+        font-size: clamp(28px, 9vw, 44px);
+        line-height: 1.05;
+        text-align: center;
+        letter-spacing: 2px;
+    }
+
+    #dashboard h2 {
+        font-size: 22px;
+    }
+
+    /* Any grid becomes one column */
+    #dashboard .stats,
+    #dashboard .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        width: 100%;
+        gap: 12px;
+    }
+
+    /* Cards */
+    #dashboard .stat-card,
+    #dashboard .stat,
+    #dashboard .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Dashboard buttons */
+    #dashboard button {
+        width: 100%;
+        min-height: 50px;
+    }
+
+    /* Badge layout */
+    .arrowhead-badge-list {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .arrowhead-badge {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* Scoreboard */
+    .arrowhead-score-row {
+        grid-template-columns: 30px minmax(0, 1fr) 65px 45px;
+        gap: 6px;
+        padding: 11px 4px;
+    }
+
+    .arrowhead-score-row span,
+    .arrowhead-score-row strong {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Q&A */
+    .arrowhead-qa-card {
+        width: calc(100vw - 28px);
+        max-width: calc(100vw - 28px);
+        padding: 22px 16px;
+    }
+
+    .qa-options {
+        grid-template-columns: 1fr !important;
+    }
+
+    .qa-option {
+        width: 100%;
+        min-height: 52px;
+    }
+
+    /* Level select */
+    #levelGrid {
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr)) !important;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    #dashboard {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #levelGrid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .arrowhead-score-row {
+        grid-template-columns: 25px minmax(0, 1fr) 55px 40px;
+        font-size: 10px;
+    }
+
+}
