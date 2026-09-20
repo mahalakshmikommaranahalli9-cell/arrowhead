@@ -1,112 +1,54 @@
-/* =========================================================
-   ARROWHEAD — SERVICE WORKER
-========================================================= */
-
-const CACHE_NAME = "arrowhead-v7";
+const CACHE_NAME = "arrowhead-v8";
 
 const FILES = [
     "./",
     "./index.html",
     "./style.css",
     "./levels.js",
+    "./online.js",
     "./game.js",
+    "./qa.js",
     "./manifest.json"
 ];
 
+self.addEventListener("install", event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(FILES);
+        })
+    );
 
-self.addEventListener(
-    "install",
-    event => {
+    self.skipWaiting();
+});
 
-        event.waitUntil(
+self.addEventListener("activate", event => {
+    event.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            );
+        })
+    );
 
-            caches
-                .open(CACHE_NAME)
-                .then(
-                    cache =>
-                        cache.addAll(FILES)
-                )
+    self.clients.claim();
+});
 
-        );
+self.addEventListener("fetch", event => {
+    event.respondWith(
+        fetch(event.request)
+            .then(response => {
+                const copy = response.clone();
 
-        self.skipWaiting();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(event.request, copy);
+                });
 
-    }
-);
-
-
-self.addEventListener(
-    "activate",
-    event => {
-
-        event.waitUntil(
-
-            caches
-                .keys()
-                .then(
-                    keys =>
-
-                        Promise.all(
-
-                            keys
-                                .filter(
-                                    key =>
-                                        key !== CACHE_NAME
-                                )
-                                .map(
-                                    key =>
-                                        caches.delete(key)
-                                )
-
-                        )
-
-                )
-
-        );
-
-        self.clients.claim();
-
-    }
-);
-
-
-self.addEventListener(
-    "fetch",
-    event => {
-
-        event.respondWith(
-
-            fetch(event.request)
-
-                .then(response => {
-
-                    const copy =
-                        response.clone();
-
-
-                    caches
-                        .open(CACHE_NAME)
-                        .then(
-                            cache =>
-                                cache.put(
-                                    event.request,
-                                    copy
-                                )
-                        );
-
-
-                    return response;
-
-                })
-
-                .catch(
-                    () =>
-                        caches.match(
-                            event.request
-                        )
-                )
-
-        );
-
-    }
-);
+                return response;
+            })
+            .catch(() => {
+                return caches.match(event.request);
+            })
+    );
+});
