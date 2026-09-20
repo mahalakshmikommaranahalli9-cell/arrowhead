@@ -2,135 +2,337 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#050505"
-    >
-
-    <meta
-        name="description"
-        content="ARROWHEAD — Infinite Tap Away Logic Game"
-    >
+    <meta name="theme-color" content="#050505">
+    <meta name="description" content="ARROWHEAD — Infinite Tap-Away Logic Game">
 
     <title>ARROWHEAD — Infinite Logic</title>
 
     <link rel="manifest" href="manifest.json">
-
     <link rel="stylesheet" href="style.css">
 
     <style>
+        /* =========================================================
+           ARROWHEAD — UI CONNECTION LAYER
+        ========================================================= */
 
-        /* =====================================================
-           CREATOR CREDIT
-        ===================================================== */
-
-        .creator-credit {
-
-            margin-top: 28px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid
-                rgba(255,255,255,0.12);
-
-            text-align: center;
-
-        }
-
-
-        .creator-label {
-
-            font-size: 10px;
-
-            letter-spacing: 3px;
-
-            color: rgba(255,255,255,0.45);
-
-            margin-bottom: 8px;
-
-        }
-
-
-        .creator-name {
-
-            font-size: 15px;
-
-            letter-spacing: 1px;
-
-            color: #ffffff;
-
-            margin-bottom: 12px;
-
-        }
-
-
-        .creator-github {
-
-            display: inline-flex;
-
+        .game-controls {
+            display: flex;
             align-items: center;
+            gap: 10px;
+        }
 
-            justify-content: center;
-
-            gap: 8px;
-
+        .game-pause-button {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.04);
             color: #ffffff;
-
-            text-decoration: none;
-
-            font-size: 12px;
-
-            letter-spacing: 1px;
-
-            padding: 8px 14px;
-
-            border: 1px solid
-                rgba(255,255,255,0.2);
-
+            padding: 9px 16px;
+            min-height: 40px;
             border-radius: 8px;
-
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
             transition:
                 background 0.2s ease,
                 border-color 0.2s ease,
                 transform 0.2s ease;
-
         }
 
+        .game-pause-button:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .game-pause-button:active {
+            transform: scale(0.96);
+        }
+
+        /* =========================================================
+           LEVEL SELECT
+        ========================================================= */
+
+        #levelSelectScreen {
+            min-height: calc(100vh - 90px);
+            padding: 40px 22px;
+            overflow-y: auto;
+        }
+
+        .level-select-panel {
+            width: min(1050px, 100%);
+            margin: 0 auto;
+        }
+
+        .level-select-heading {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .level-select-title {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 900;
+            letter-spacing: 6px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .level-select-subtitle {
+            color: rgba(255, 255, 255, 0.48);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .level-select-divider {
+            width: 70px;
+            height: 1px;
+            margin: 18px auto 0;
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        #levelGrid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            width: 100%;
+        }
+
+        .level-card {
+            position: relative;
+            min-height: 92px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.025);
+            color: #ffffff;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            cursor: pointer;
+            font-family: inherit;
+            transition:
+                transform 0.2s ease,
+                border-color 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .level-card:hover:not(.locked) {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.42);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .level-card:active:not(.locked) {
+            transform: scale(0.97);
+        }
+
+        .level-card .level-number {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .level-card .level-status {
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.42);
+            text-transform: uppercase;
+        }
+
+        .level-card.completed {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .level-card.completed .level-status {
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .level-card.current {
+            border-color: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .level-card.current .level-status {
+            color: #ffffff;
+        }
+
+        .level-card.locked {
+            opacity: 0.28;
+            cursor: not-allowed;
+        }
+
+        .level-lock {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .level-select-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .level-back-button {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: transparent;
+            color: #ffffff;
+            min-height: 44px;
+            padding: 0 24px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .level-back-button:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* =========================================================
+           DASHBOARD EXTRA BUTTON
+        ========================================================= */
+
+        .dashboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .secondary-dashboard-button {
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            background: transparent !important;
+        }
+
+        /* =========================================================
+           CREATOR CREDIT
+        ========================================================= */
+
+        .creator-credit {
+            text-align: center;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .creator-label {
+            display: block;
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.38);
+            margin-bottom: 6px;
+        }
+
+        .creator-name {
+            display: block;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .creator-github {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            transition: color 0.2s ease;
+        }
 
         .creator-github:hover {
-
-            background:
-                rgba(255,255,255,0.08);
-
-            border-color:
-                rgba(255,255,255,0.5);
-
-            transform:
-                translateY(-2px);
-
+            color: #ffffff;
         }
-
 
         .creator-github svg {
-
-            width: 17px;
-
-            height: 17px;
-
-            display: block;
-
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
         }
 
-    </style>
+        /* =========================================================
+           MOBILE
+        ========================================================= */
 
+        @media (max-width: 800px) {
+
+            #levelGrid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .level-card {
+                min-height: 82px;
+            }
+
+            .level-card .level-number {
+                font-size: 21px;
+            }
+        }
+
+        @media (max-width: 560px) {
+
+            .game-pause-button {
+                padding: 8px 11px;
+                font-size: 9px;
+                letter-spacing: 1px;
+            }
+
+            #levelSelectScreen {
+                padding: 28px 14px;
+            }
+
+            #levelGrid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 9px;
+            }
+
+            .level-card {
+                min-height: 78px;
+                border-radius: 8px;
+            }
+
+            .level-card .level-number {
+                font-size: 19px;
+            }
+
+            .level-card .level-status {
+                font-size: 7px;
+            }
+
+            .level-select-title {
+                letter-spacing: 4px;
+            }
+        }
+
+        @media (max-width: 360px) {
+
+            #levelGrid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .game-pause-button {
+                padding: 7px 9px;
+            }
+        }
+    </style>
 </head>
 
 
@@ -138,78 +340,51 @@
 
 <div id="app">
 
-
-    <!-- =====================================================
-         TOP HEADER
-    ====================================================== -->
+    <!-- =========================================================
+         TOP BAR
+    ========================================================== -->
 
     <header class="topbar">
 
         <div class="brand">
-
-            <div class="logo">
-                ARROWHEAD
-            </div>
-
-            <div class="subtitle">
-                INFINITE LOGIC
-            </div>
-
+            <div class="logo">ARROWHEAD</div>
+            <div class="subtitle">INFINITE LOGIC</div>
         </div>
-
 
         <div class="level-display">
-
             <span>LEVEL</span>
-
-            <strong id="level">
-                1
-            </strong>
-
+            <strong id="level">1</strong>
         </div>
 
-
-        <div
-            id="lives"
-            class="lives"
-        >
+        <div id="lives" class="lives">
             ♥ ♥ ♥
         </div>
 
     </header>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================================
          LOGIN
-    ====================================================== -->
+    ========================================================== -->
 
-    <section
-        id="loginScreen"
-        class="screen"
-    >
+    <section id="loginScreen" class="screen">
 
         <div class="login-panel panel">
 
             <div class="game-mark">
-
                 <span>↑</span>
                 <span>→</span>
                 <span>↓</span>
                 <span>←</span>
-
             </div>
-
 
             <div class="big-title">
                 ARROWHEAD
             </div>
 
-
             <div class="tagline">
                 TAP • CLEAR • ESCAPE
             </div>
-
 
             <input
                 id="playerName"
@@ -219,14 +394,12 @@
                 autocomplete="off"
             >
 
-
             <button
                 id="enterButton"
                 onclick="startGame()"
             >
                 ENTER GAME
             </button>
-
 
             <div class="small-text">
                 Every arrow must find a clear path.
@@ -237,16 +410,11 @@
     </section>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================================
          GAME
-    ====================================================== -->
+    ========================================================== -->
 
-    <section
-        id="gameScreen"
-        class="game-screen hidden"
-    >
-
+    <section id="gameScreen" class="game-screen hidden">
 
         <div class="instruction-bar">
 
@@ -254,22 +422,21 @@
                 Tap an arrow with a clear path.
             </span>
 
+            <button
+                id="pauseButton"
+                class="game-pause-button"
+                type="button"
+                onclick="pauseGame()"
+            >
+                ⏸ PAUSE
+            </button>
+
         </div>
 
 
+        <main id="gameArea" class="game-area">
 
-        <!-- =================================================
-             GAME BOARD
-        ================================================== -->
-
-        <main
-            id="gameArea"
-            class="game-area"
-        >
-
-
-            <!-- Animated background -->
-
+            <!-- Decorative environment -->
             <div
                 id="natureLayer"
                 class="nature-layer"
@@ -277,35 +444,26 @@
             >
 
                 <div class="cloud cloud-one"></div>
-
                 <div class="cloud cloud-two"></div>
 
                 <div class="bird bird-one">
-
                     <span></span>
                     <span></span>
-
                 </div>
 
                 <div class="bird bird-two">
-
                     <span></span>
                     <span></span>
-
                 </div>
 
                 <div class="butterfly butterfly-one">
-
                     <span></span>
                     <span></span>
-
                 </div>
 
                 <div class="butterfly butterfly-two">
-
                     <span></span>
                     <span></span>
-
                 </div>
 
                 <div class="rabbit rabbit-one">
@@ -327,221 +485,130 @@
             </div>
 
 
-
-            <!-- Actual Tap Away board -->
-
+            <!-- Arrow puzzle board -->
             <div id="arrowBoard"></div>
-
 
         </main>
 
 
-
-        <!-- =================================================
-             GAME FOOTER
-        ================================================== -->
+        <!-- Game statistics -->
 
         <footer class="game-footer">
 
-
             <div class="stat-box">
-
-                <span>
-                    SCORE
-                </span>
-
-                <strong id="score">
-                    0
-                </strong>
-
+                <span>SCORE</span>
+                <strong id="score">0</strong>
             </div>
 
-
             <div class="stat-box">
-
-                <span>
-                    PROGRESS
-                </span>
-
-                <strong id="progress">
-                    0 / 0
-                </strong>
-
+                <span>PROGRESS</span>
+                <strong id="progress">0 / 0</strong>
             </div>
 
-
             <div class="stat-box">
-
-                <span>
-                    TIME
-                </span>
-
-                <strong id="timer">
-                    0.00
-                </strong>
-
+                <span>TIME</span>
+                <strong id="timer">0.00</strong>
             </div>
-
 
         </footer>
-
 
     </section>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================================
          DASHBOARD
-    ====================================================== -->
+    ========================================================== -->
 
-    <section
-        id="dashboard"
-        class="screen hidden"
-    >
+    <section id="dashboard" class="screen hidden">
 
         <div class="dashboard-panel panel">
-
 
             <div class="dashboard-title">
                 PLAYER DASHBOARD
             </div>
 
-
-            <div
-                id="welcome"
-                class="welcome"
-            >
-            </div>
-
+            <div id="welcome" class="welcome"></div>
 
 
             <div class="stats-grid">
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        HIGH SCORE
-                    </span>
-
-                    <strong id="highScore">
-                        0
-                    </strong>
-
+                    <span>HIGH SCORE</span>
+                    <strong id="highScore">0</strong>
                 </div>
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        HIGH LEVEL
-                    </span>
-
-                    <strong id="highLevel">
-                        1
-                    </strong>
-
+                    <span>HIGH LEVEL</span>
+                    <strong id="highLevel">1</strong>
                 </div>
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        GAMES
-                    </span>
-
-                    <strong id="gamesPlayed">
-                        0
-                    </strong>
-
+                    <span>GAMES</span>
+                    <strong id="gamesPlayed">0</strong>
                 </div>
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        ACCURACY
-                    </span>
-
-                    <strong id="accuracy">
-                        0%
-                    </strong>
-
+                    <span>ACCURACY</span>
+                    <strong id="accuracy">0%</strong>
                 </div>
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        BEST TIME
-                    </span>
-
-                    <strong id="bestTime">
-                        --
-                    </strong>
-
+                    <span>BEST TIME</span>
+                    <strong id="bestTime">--</strong>
                 </div>
 
-
                 <div class="dashboard-stat">
-
-                    <span>
-                        PERFECT LEVELS
-                    </span>
-
-                    <strong id="perfectLevels">
-                        0
-                    </strong>
-
+                    <span>PERFECT LEVELS</span>
+                    <strong id="perfectLevels">0</strong>
                 </div>
-
 
             </div>
 
 
+            <div class="dashboard-actions">
 
-            <button
-                onclick="playAgain()"
-            >
-                PLAY AGAIN
-            </button>
+                <button
+                    type="button"
+                    onclick="playAgain()"
+                >
+                    PLAY AGAIN
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-dashboard-button"
+                    onclick="showLevelSelect()"
+                >
+                    🎯 SELECT LEVEL
+                </button>
+
+            </div>
 
 
-
-            <!-- =================================================
-                 CREATOR CREDIT
-            ================================================== -->
+            <!-- Creator credit -->
 
             <div class="creator-credit">
 
-                <div class="creator-label">
+                <span class="creator-label">
                     CREATED &amp; DEVELOPED BY
-                </div>
+                </span>
 
-
-                <div class="creator-name">
+                <span class="creator-name">
                     Mahalakshmi Kommaranahalli
-                </div>
-
+                </span>
 
                 <a
                     class="creator-github"
                     href="https://github.com/mahalakshmikommaranahalli9-cell"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Mahalakshmi Kommaranahalli GitHub"
                 >
 
                     <svg
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                     >
-
-                        <path
-                            fill="currentColor"
-                            d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.88-1.36-3.88-1.36-.53-1.34-1.28-1.7-1.28-1.7-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.94 10.94 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.73.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.35.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
-                        />
-
+                        <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.69-3.88-1.35-3.88-1.35-.53-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.73.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.4-5.25 5.68.41.35.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
                     </svg>
 
                     GitHub
@@ -550,16 +617,62 @@
 
             </div>
 
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         LEVEL SELECT
+    ========================================================== -->
+
+    <section
+        id="levelSelectScreen"
+        class="screen hidden"
+    >
+
+        <div class="level-select-panel">
+
+            <div class="level-select-heading">
+
+                <div class="level-select-title">
+                    LEVELS
+                </div>
+
+                <div class="level-select-subtitle">
+                    Choose an unlocked challenge
+                </div>
+
+                <div class="level-select-divider"></div>
+
+            </div>
+
+
+            <!-- game.js dynamically creates level cards here -->
+
+            <div id="levelGrid"></div>
+
+
+            <div class="level-select-actions">
+
+                <button
+                    type="button"
+                    class="level-back-button"
+                    onclick="backToDashboard()"
+                >
+                    ← BACK TO DASHBOARD
+                </button>
+
+            </div>
 
         </div>
 
     </section>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================================
          GAME OVER
-    ====================================================== -->
+    ========================================================== -->
 
     <div
         id="gameOver"
@@ -568,74 +681,64 @@
 
         <div class="gameover-panel panel">
 
-
             <div class="gameover-title">
                 GAME OVER
             </div>
 
-
             <div
                 id="finalScore"
                 class="final-score"
-            >
-            </div>
-
+            ></div>
 
             <button
+                type="button"
                 onclick="restartGame()"
             >
                 RETRY
             </button>
 
-
             <button
+                type="button"
                 class="secondary-button"
                 onclick="showDashboard()"
             >
                 DASHBOARD
             </button>
 
-
         </div>
 
     </div>
 
-
 </div>
 
 
-
-<!-- =======================================================
-     JAVASCRIPT
-======================================================== -->
-
+<!-- =========================================================
+     GAME SCRIPTS
+========================================================== -->
 
 <script src="levels.js"></script>
-
 <script src="game.js"></script>
 
 
+<!-- =========================================================
+     SERVICE WORKER
+========================================================== -->
 
 <script>
 
-if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator) {
 
-    window.addEventListener(
-        "load",
-        () => {
+        window.addEventListener("load", () => {
 
             navigator.serviceWorker
                 .register("sw.js")
                 .catch(() => {});
 
-        }
-    );
+        });
 
-}
+    }
 
 </script>
 
-
 </body>
-
 </html>

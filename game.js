@@ -1,6 +1,19 @@
 /* =========================================================
-   ARROWHEAD — TAP-AWAY GAME ENGINE
-   Infinite Tap-Away Levels
+   ARROWHEAD 3.0 — TAP-AWAY GAME ENGINE
+
+   Features:
+   - 3 lives per level
+   - Same-level retry after Game Over
+   - Infinite procedural levels
+   - Saved current level
+   - Saved unlocked levels
+   - Level Select support
+   - Pause / Resume
+   - Restart Level
+   - Dashboard
+   - High score / statistics
+   - Correct attempt tracking
+   - Touch + mouse support
 ========================================================= */
 
 (() => {
@@ -74,12 +87,29 @@
 
 
     /* =====================================================
+       OPTIONAL LEVEL SELECT DOM
+    ===================================================== */
+
+    const levelSelectScreen =
+        document.getElementById(
+            "levelSelectScreen"
+        );
+
+    const levelGrid =
+        document.getElementById(
+            "levelGrid"
+        );
+
+
+    /* =====================================================
        GAME STATE
     ===================================================== */
 
     let playerName = "";
 
     let currentLevel = 1;
+
+    let unlockedLevel = 1;
 
     let score = 0;
 
@@ -89,13 +119,15 @@
 
     let totalArrows = 0;
 
-    let attempts = 0;
+    let levelAttempts = 0;
 
-    let successfulMoves = 0;
+    let levelSuccessfulMoves = 0;
 
     let levelMistakes = 0;
 
     let levelStartTime = 0;
+
+    let pausedElapsed = 0;
 
     let timerInterval = null;
 
@@ -107,14 +139,34 @@
 
     let busy = false;
 
+    let paused = false;
+
+    let gameStarted = false;
+
 
     /* =====================================================
-       STORAGE
+       GLOBAL STATISTICS
+    ===================================================== */
+
+    let sessionAttempts = 0;
+
+    let sessionSuccessfulMoves = 0;
+
+
+    /* =====================================================
+       STORAGE KEYS
     ===================================================== */
 
     const PROFILE_KEY =
         "arrowhead-profile";
 
+    const PROGRESS_KEY =
+        "arrowhead-progress";
+
+
+    /* =====================================================
+       DEFAULT PROFILE
+    ===================================================== */
 
     function defaultProfile() {
 
@@ -140,6 +192,10 @@
 
     }
 
+
+    /* =====================================================
+       LOAD PROFILE
+    ===================================================== */
 
     function loadProfile() {
 
@@ -181,15 +237,148 @@
         loadProfile();
 
 
+    /* =====================================================
+       SAVE PROFILE
+    ===================================================== */
+
     function saveProfile() {
 
-        localStorage.setItem(
+        try {
 
-            PROFILE_KEY,
+            localStorage.setItem(
 
-            JSON.stringify(profile)
+                PROFILE_KEY,
 
-        );
+                JSON.stringify(profile)
+
+            );
+
+        }
+
+        catch {
+
+            /* Storage may be unavailable */
+
+        }
+
+    }
+
+
+    /* =====================================================
+       LOAD PROGRESS
+    ===================================================== */
+
+    function loadProgress() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    PROGRESS_KEY
+                );
+
+
+            if (!saved) {
+
+                return {
+
+                    currentLevel: 1,
+
+                    unlockedLevel: 1,
+
+                    score: 0
+
+                };
+
+            }
+
+
+            const data =
+                JSON.parse(saved);
+
+
+            return {
+
+                currentLevel:
+                    Math.max(
+                        1,
+                        Number(
+                            data.currentLevel
+                        ) || 1
+                    ),
+
+                unlockedLevel:
+                    Math.max(
+                        1,
+                        Number(
+                            data.unlockedLevel
+                        ) ||
+                        Number(
+                            data.currentLevel
+                        ) ||
+                        1
+                    ),
+
+                score:
+                    Math.max(
+                        0,
+                        Number(
+                            data.score
+                        ) || 0
+                    )
+
+            };
+
+        }
+
+        catch {
+
+            return {
+
+                currentLevel: 1,
+
+                unlockedLevel: 1,
+
+                score: 0
+
+            };
+
+        }
+
+    }
+
+
+    /* =====================================================
+       SAVE PROGRESS
+    ===================================================== */
+
+    function saveProgress() {
+
+        try {
+
+            localStorage.setItem(
+
+                PROGRESS_KEY,
+
+                JSON.stringify({
+
+                    currentLevel,
+
+                    unlockedLevel,
+
+                    score
+
+                })
+
+            );
+
+        }
+
+        catch {
+
+            /* Storage may be unavailable */
+
+        }
 
     }
 
@@ -198,84 +387,119 @@
        LOGIN
     ===================================================== */
 
-    window.startGame = function () {
+    window.startGame =
+        function () {
 
-        const name =
-            playerNameInput.value.trim();
-
-
-        if (!name) {
-
-            playerNameInput.focus();
-
-            return;
-
-        }
+            const name =
+                playerNameInput.value.trim();
 
 
-        playerName =
-            name.substring(
-                0,
-                20
-            );
+            if (!name) {
 
+                playerNameInput.focus();
 
-        profile.name =
-            playerName;
-
-
-        profile.gamesPlayed++;
-
-
-        saveProfile();
-
-
-        beginGame();
-
-    };
-
-
-    playerNameInput.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Enter"
-            ) {
-
-                window.startGame();
+                return;
 
             }
 
-        }
-    );
+
+            playerName =
+                name.substring(
+                    0,
+                    20
+                );
+
+
+            profile.name =
+                playerName;
+
+
+            /*
+             * Count an actual game session,
+             * not every level.
+             */
+
+            profile.gamesPlayed++;
+
+
+            saveProfile();
+
+
+            const progress =
+                loadProgress();
+
+
+            currentLevel =
+                progress.currentLevel;
+
+
+            unlockedLevel =
+                progress.unlockedLevel;
+
+
+            score =
+                progress.score;
+
+
+            levelAttempts = 0;
+
+            levelSuccessfulMoves = 0;
+
+            levelMistakes = 0;
+
+            sessionAttempts = 0;
+
+            sessionSuccessfulMoves = 0;
+
+            lives = 3;
+
+            paused = false;
+
+            busy = false;
+
+            gameStarted = true;
+
+
+            showGameScreen();
+
+
+            updateScore();
+
+            updateLives();
+
+            loadLevel();
+
+        };
+
+
+    if (playerNameInput) {
+
+        playerNameInput.addEventListener(
+
+            "keydown",
+
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    window.startGame();
+
+                }
+
+            }
+
+        );
+
+    }
 
 
     /* =====================================================
-       START GAME
+       SHOW GAME SCREEN
     ===================================================== */
 
-    function beginGame() {
-
-        stopTimer();
-
-        clearNextLevelTimer();
-
-
-        currentLevel = 1;
-
-        score = 0;
-
-        lives = 3;
-
-        attempts = 0;
-
-        successfulMoves = 0;
-
-        levelMistakes = 0;
-
-        busy = false;
-
+    function showGameScreen() {
 
         loginScreen.classList.add(
             "hidden"
@@ -285,6 +509,14 @@
             "hidden"
         );
 
+        if (levelSelectScreen) {
+
+            levelSelectScreen.classList.add(
+                "hidden"
+            );
+
+        }
+
         gameOver.classList.add(
             "hidden"
         );
@@ -292,13 +524,6 @@
         gameScreen.classList.remove(
             "hidden"
         );
-
-
-        updateScore();
-
-        updateLives();
-
-        loadLevel();
 
     }
 
@@ -314,6 +539,11 @@
         clearNextLevelTimer();
 
 
+        paused = false;
+
+        busy = false;
+
+
         levelData =
             ArrowLevels.getLevel(
                 currentLevel
@@ -327,9 +557,12 @@
         totalArrows =
             levelData.arrows.length;
 
-        levelMistakes = 0;
 
-        busy = false;
+        levelAttempts = 0;
+
+        levelSuccessfulMoves = 0;
+
+        levelMistakes = 0;
 
 
         levelEl.textContent =
@@ -345,13 +578,16 @@
 
 
         /*
-         * Important:
-         * Each level starts with 3 lives.
+         * Every level gets
+         * three fresh lives.
          */
 
         lives = 3;
 
         updateLives();
+
+
+        saveProgress();
 
 
         renderBoard();
@@ -361,6 +597,9 @@
             performance.now();
 
 
+        pausedElapsed = 0;
+
+
         startTimer();
 
     }
@@ -368,12 +607,6 @@
 
     /* =====================================================
        RENDER BOARD
-       
-       IMPORTANT FIX:
-       The SVG is 1000 × 700.
-       Cell size now uses BOTH width and height.
-       Therefore no row can be generated outside
-       the visible SVG.
     ===================================================== */
 
     function renderBoard() {
@@ -409,18 +642,10 @@
         );
 
 
-        /*
-         * SVG dimensions.
-         */
-
         const VIEW_WIDTH = 1000;
 
         const VIEW_HEIGHT = 700;
 
-
-        /*
-         * Safe margins.
-         */
 
         const horizontalMargin = 70;
 
@@ -441,13 +666,6 @@
             levelData.size;
 
 
-        /*
-         * THIS is the important fix.
-         *
-         * Cell size must fit BOTH
-         * the width and the height.
-         */
-
         const cellSize =
             Math.min(
 
@@ -458,10 +676,6 @@
             );
 
 
-        /*
-         * Center the entire grid.
-         */
-
         const gridWidth =
             cellSize * size;
 
@@ -471,13 +685,17 @@
 
 
         const offsetX =
-            (VIEW_WIDTH -
-                gridWidth) / 2;
+            (
+                VIEW_WIDTH -
+                gridWidth
+            ) / 2;
 
 
         const offsetY =
-            (VIEW_HEIGHT -
-                gridHeight) / 2;
+            (
+                VIEW_HEIGHT -
+                gridHeight
+            ) / 2;
 
 
         const layer =
@@ -497,11 +715,8 @@
         );
 
 
-        /*
-         * Create every arrow.
-         */
-
         levelData.arrows.forEach(
+
             (
                 data,
                 index
@@ -533,6 +748,7 @@
                 );
 
             }
+
         );
 
 
@@ -589,10 +805,6 @@
             data.direction;
 
 
-        /* -------------------------------------------------
-           CENTER OF CELL
-        ------------------------------------------------- */
-
         const cx =
             offsetX +
             data.col *
@@ -606,10 +818,6 @@
             cellSize +
             cellSize / 2;
 
-
-        /* -------------------------------------------------
-           ARROW SIZE
-        ------------------------------------------------- */
 
         const arrowLength =
             Math.min(
@@ -680,10 +888,6 @@
             arrowWidth / 2;
 
 
-        /*
-         * Clean upward arrow.
-         */
-
         const points = [
 
             `${cx},${tipY}`,
@@ -739,10 +943,6 @@
         );
 
 
-        /*
-         * Rotate according to direction.
-         */
-
         let angle = 0;
 
 
@@ -780,9 +980,9 @@
         );
 
 
-        /* -------------------------------------------------
-           INVISIBLE HIT AREA
-        ------------------------------------------------- */
+        /* =================================================
+           HIT AREA
+        ================================================= */
 
         const hit =
             document.createElementNS(
@@ -817,6 +1017,7 @@
                 42
 
             )
+
         );
 
 
@@ -845,10 +1046,6 @@
             hit
         );
 
-
-        /* -------------------------------------------------
-           PIECE DATA
-        ------------------------------------------------- */
 
         const piece = {
 
@@ -881,10 +1078,6 @@
         };
 
 
-        /* -------------------------------------------------
-           TAP / CLICK
-        ------------------------------------------------- */
-
         hit.addEventListener(
 
             "pointerdown",
@@ -892,6 +1085,14 @@
             event => {
 
                 event.preventDefault();
+
+
+                if (paused) {
+
+                    return;
+
+                }
+
 
                 selectArrow(
                     piece
@@ -922,6 +1123,13 @@
         }
 
 
+        if (paused) {
+
+            return;
+
+        }
+
+
         if (piece.removed) {
 
             return;
@@ -929,12 +1137,10 @@
         }
 
 
-        attempts++;
+        levelAttempts++;
 
+        sessionAttempts++;
 
-        /*
-         * Check the entire path.
-         */
 
         const clear =
             canLeave(
@@ -948,6 +1154,7 @@
 
             lives--;
 
+
             updateLives();
 
 
@@ -957,6 +1164,7 @@
 
 
             setTimeout(
+
                 () => {
 
                     piece.group.classList.remove(
@@ -964,7 +1172,9 @@
                     );
 
                 },
+
                 260
+
             );
 
 
@@ -986,7 +1196,9 @@
         }
 
 
-        successfulMoves++;
+        levelSuccessfulMoves++;
+
+        sessionSuccessfulMoves++;
 
 
         removeArrow(
@@ -1013,11 +1225,6 @@
             piece.col +
             piece.dc;
 
-
-        /*
-         * Follow the arrow all the way
-         * to the board edge.
-         */
 
         while (
 
@@ -1097,10 +1304,6 @@
             true;
 
 
-        /*
-         * Direction-based exit.
-         */
-
         let exitX = 0;
 
         let exitY = 0;
@@ -1173,10 +1376,6 @@
         removedCount++;
 
 
-        /*
-         * Score.
-         */
-
         const points =
             Math.max(
 
@@ -1195,9 +1394,8 @@
         updateScore();
 
 
-        /*
-         * Progress.
-         */
+        saveProgress();
+
 
         progressEl.textContent =
             `${removedCount} / ${totalArrows}`;
@@ -1206,10 +1404,6 @@
         messageEl.textContent =
             "CLEAR — NICE MOVE";
 
-
-        /*
-         * ALL ARROWS REMOVED.
-         */
 
         if (
             removedCount >=
@@ -1282,7 +1476,7 @@
 
 
         /*
-         * High level.
+         * Update highest level.
          */
 
         profile.highLevel =
@@ -1295,10 +1489,6 @@
             );
 
 
-        /*
-         * High score.
-         */
-
         profile.highScore =
             Math.max(
 
@@ -1310,27 +1500,47 @@
 
 
         /*
-         * Save statistics.
+         * Add ONLY the statistics
+         * belonging to this level.
          */
 
         profile.attempts +=
-            attempts;
+            levelAttempts;
 
 
         profile.successfulMoves +=
-            successfulMoves;
+            levelSuccessfulMoves;
 
 
         saveProfile();
 
 
+        /*
+         * Unlock the next level.
+         */
+
+        unlockedLevel =
+            Math.max(
+
+                unlockedLevel,
+
+                currentLevel + 1
+
+            );
+
+
+        currentLevel++;
+
+
+        saveProgress();
+
+
         messageEl.textContent =
-            `LEVEL ${currentLevel} CLEAR ✓`;
+            `LEVEL ${currentLevel - 1} CLEAR ✓`;
 
 
         /*
-         * Automatically move to
-         * the next infinite level.
+         * Automatically continue.
          */
 
         nextLevelTimer =
@@ -1340,9 +1550,6 @@
 
                     nextLevelTimer =
                         null;
-
-
-                    currentLevel++;
 
 
                     loadLevel();
@@ -1365,10 +1572,24 @@
         stopTimer();
 
 
+        if (paused) {
+
+            return;
+
+        }
+
+
         timerInterval =
             setInterval(
 
                 () => {
+
+                    if (paused) {
+
+                        return;
+
+                    }
+
 
                     const elapsed =
                         (
@@ -1428,6 +1649,411 @@
 
 
     /* =====================================================
+       PAUSE
+    ===================================================== */
+
+    window.pauseGame =
+        function () {
+
+            if (!gameStarted) {
+
+                return;
+
+            }
+
+
+            if (busy) {
+
+                return;
+
+            }
+
+
+            if (paused) {
+
+                return;
+
+            }
+
+
+            paused = true;
+
+
+            pausedElapsed =
+                (
+                    performance.now() -
+                    levelStartTime
+                ) / 1000;
+
+
+            stopTimer();
+
+
+            messageEl.textContent =
+                "GAME PAUSED";
+
+
+            showPauseOverlay();
+
+        };
+
+
+    /* =====================================================
+       RESUME
+    ===================================================== */
+
+    window.resumeGame =
+        function () {
+
+            if (!paused) {
+
+                return;
+
+            }
+
+
+            paused = false;
+
+
+            levelStartTime =
+                performance.now() -
+                (
+                    pausedElapsed *
+                    1000
+                );
+
+
+            hidePauseOverlay();
+
+
+            messageEl.textContent =
+                "Tap an arrow with a clear path.";
+
+
+            startTimer();
+
+        };
+
+
+    /* =====================================================
+       PAUSE OVERLAY
+    ===================================================== */
+
+    function showPauseOverlay() {
+
+        let overlay =
+            document.getElementById(
+                "arrowPauseOverlay"
+            );
+
+
+        if (!overlay) {
+
+            overlay =
+                document.createElement(
+                    "div"
+                );
+
+
+            overlay.id =
+                "arrowPauseOverlay";
+
+
+            overlay.innerHTML = `
+
+                <div class="arrow-pause-panel">
+
+                    <div class="arrow-pause-title">
+                        GAME PAUSED
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="resumeGame()"
+                    >
+                        ▶ RESUME
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="restartCurrentLevel()"
+                    >
+                        ↻ RESTART LEVEL
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="stopToDashboard()"
+                        class="secondary-button"
+                    >
+                        🏠 DASHBOARD
+                    </button>
+
+                </div>
+
+            `;
+
+
+            document.body.appendChild(
+                overlay
+            );
+
+
+            addPauseStyles();
+
+        }
+
+
+        overlay.classList.add(
+            "visible"
+        );
+
+    }
+
+
+    /* =====================================================
+       HIDE PAUSE OVERLAY
+    ===================================================== */
+
+    function hidePauseOverlay() {
+
+        const overlay =
+            document.getElementById(
+                "arrowPauseOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.classList.remove(
+                "visible"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PAUSE STYLES
+    ===================================================== */
+
+    function addPauseStyles() {
+
+        if (
+            document.getElementById(
+                "arrowheadPauseStyles"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const style =
+            document.createElement(
+                "style"
+            );
+
+
+        style.id =
+            "arrowheadPauseStyles";
+
+
+        style.textContent = `
+
+            #arrowPauseOverlay {
+
+                position: fixed;
+
+                inset: 0;
+
+                z-index: 99999;
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                background:
+                    rgba(0,0,0,0.82);
+
+                opacity: 0;
+
+                pointer-events: none;
+
+                transition:
+                    opacity 0.2s ease;
+
+                backdrop-filter:
+                    blur(10px);
+
+            }
+
+
+            #arrowPauseOverlay.visible {
+
+                opacity: 1;
+
+                pointer-events: auto;
+
+            }
+
+
+            .arrow-pause-panel {
+
+                width:
+                    min(90vw, 380px);
+
+                padding: 32px;
+
+                text-align: center;
+
+                border:
+                    1px solid
+                    rgba(255,255,255,0.16);
+
+                border-radius: 18px;
+
+                background:
+                    rgba(15,15,15,0.96);
+
+                box-shadow:
+                    0 25px 80px
+                    rgba(0,0,0,0.6);
+
+            }
+
+
+            .arrow-pause-title {
+
+                color: #fff;
+
+                font-size: 24px;
+
+                font-weight: 700;
+
+                letter-spacing: 3px;
+
+                margin-bottom: 25px;
+
+            }
+
+
+            .arrow-pause-panel button {
+
+                width: 100%;
+
+                margin: 7px 0;
+
+                min-height: 48px;
+
+                border: none;
+
+                border-radius: 10px;
+
+                cursor: pointer;
+
+                font-weight: 700;
+
+                letter-spacing: 1px;
+
+            }
+
+
+            .arrow-pause-panel
+            .secondary-button {
+
+                background:
+                    rgba(255,255,255,0.08);
+
+                color: #fff;
+
+                border:
+                    1px solid
+                    rgba(255,255,255,0.15);
+
+            }
+
+        `;
+
+
+        document.head.appendChild(
+            style
+        );
+
+    }
+
+
+    /* =====================================================
+       RESTART CURRENT LEVEL
+    ===================================================== */
+
+    window.restartCurrentLevel =
+        function () {
+
+            hidePauseOverlay();
+
+
+            stopTimer();
+
+            clearNextLevelTimer();
+
+
+            paused = false;
+
+            busy = false;
+
+
+            lives = 3;
+
+            removedCount = 0;
+
+            levelMistakes = 0;
+
+
+            updateLives();
+
+
+            loadLevel();
+
+        };
+
+
+    /* =====================================================
+       STOP TO DASHBOARD
+    ===================================================== */
+
+    window.stopToDashboard =
+        function () {
+
+            hidePauseOverlay();
+
+
+            stopTimer();
+
+            clearNextLevelTimer();
+
+
+            paused = false;
+
+
+            saveProgress();
+
+
+            busy = true;
+
+            gameStarted = false;
+
+
+            showDashboard();
+
+        };
+
+
+    /* =====================================================
        SCORE
     ===================================================== */
 
@@ -1445,13 +2071,21 @@
 
     function updateLives() {
 
+        const heartCount =
+            Math.max(
+                0,
+                lives
+            );
+
+
         livesEl.textContent =
-            "♥ ".repeat(
-                Math.max(
-                    0,
-                    lives
-                )
-            ).trim();
+            heartCount > 0
+
+                ? "♥ ".repeat(
+                    heartCount
+                ).trim()
+
+                : "0";
 
 
         if (
@@ -1489,6 +2123,18 @@
         clearNextLevelTimer();
 
 
+        /*
+         * Add this failed level's statistics once.
+         */
+
+        profile.attempts +=
+            levelAttempts;
+
+
+        profile.successfulMoves +=
+            levelSuccessfulMoves;
+
+
         profile.highScore =
             Math.max(
 
@@ -1499,21 +2145,27 @@
             );
 
 
-        profile.attempts +=
-            attempts;
+        profile.highLevel =
+            Math.max(
 
+                profile.highLevel,
 
-        profile.successfulMoves +=
-            successfulMoves;
+                currentLevel
+
+            );
 
 
         saveProfile();
 
 
+        saveProgress();
+
+
         finalScoreEl.innerHTML =
 
             `<strong>${score}</strong>
-             <span>POINTS</span>`;
+             <span>POINTS</span>
+             <small>LEVEL ${currentLevel}</small>`;
 
 
         gameOver.classList.remove(
@@ -1524,7 +2176,7 @@
 
 
     /* =====================================================
-       RETRY
+       RETRY CURRENT LEVEL
     ===================================================== */
 
     window.restartGame =
@@ -1540,17 +2192,13 @@
             );
 
 
-            currentLevel = 1;
-
-            score = 0;
-
             lives = 3;
 
-            attempts = 0;
-
-            successfulMoves = 0;
+            removedCount = 0;
 
             levelMistakes = 0;
+
+            paused = false;
 
             busy = false;
 
@@ -1576,6 +2224,8 @@
 
             clearNextLevelTimer();
 
+            hidePauseOverlay();
+
 
             gameOver.classList.add(
                 "hidden"
@@ -1592,6 +2242,15 @@
             );
 
 
+            if (levelSelectScreen) {
+
+                levelSelectScreen.classList.add(
+                    "hidden"
+                );
+
+            }
+
+
             dashboard.classList.remove(
                 "hidden"
             );
@@ -1601,6 +2260,10 @@
 
         };
 
+
+    /* =====================================================
+       UPDATE DASHBOARD
+    ===================================================== */
 
     function updateDashboard() {
 
@@ -1612,13 +2275,19 @@
 
             totalAttempts > 0
 
-                ? Math.round(
+                ? Math.min(
 
-                    (
-                        profile.successfulMoves /
-                        totalAttempts
+                    100,
 
-                    ) * 100
+                    Math.round(
+
+                        (
+                            profile.successfulMoves /
+                            totalAttempts
+
+                        ) * 100
+
+                    )
 
                 )
 
@@ -1665,7 +2334,7 @@
 
 
     /* =====================================================
-       PLAY AGAIN
+       PLAY AGAIN / CONTINUE
     ===================================================== */
 
     window.playAgain =
@@ -1676,29 +2345,38 @@
             clearNextLevelTimer();
 
 
-            dashboard.classList.add(
-                "hidden"
-            );
+            const progress =
+                loadProgress();
 
 
-            gameScreen.classList.remove(
-                "hidden"
-            );
+            currentLevel =
+                progress.currentLevel;
 
 
-            currentLevel = 1;
+            unlockedLevel =
+                progress.unlockedLevel;
 
-            score = 0;
+
+            score =
+                progress.score;
+
 
             lives = 3;
 
-            attempts = 0;
+            levelAttempts = 0;
 
-            successfulMoves = 0;
+            levelSuccessfulMoves = 0;
 
             levelMistakes = 0;
 
+            paused = false;
+
             busy = false;
+
+            gameStarted = true;
+
+
+            showGameScreen();
 
 
             updateScore();
@@ -1709,6 +2387,330 @@
             loadLevel();
 
         };
+
+
+    /* =====================================================
+       LEVEL SELECT
+    ===================================================== */
+
+    window.showLevelSelect =
+        function () {
+
+            stopTimer();
+
+            clearNextLevelTimer();
+
+            hidePauseOverlay();
+
+
+            gameScreen.classList.add(
+                "hidden"
+            );
+
+
+            dashboard.classList.add(
+                "hidden"
+            );
+
+
+            loginScreen.classList.add(
+                "hidden"
+            );
+
+
+            gameOver.classList.add(
+                "hidden"
+            );
+
+
+            if (!levelSelectScreen) {
+
+                /*
+                 * The matching index.html will
+                 * provide this screen.
+                 */
+
+                return;
+
+            }
+
+
+            levelSelectScreen.classList.remove(
+                "hidden"
+            );
+
+
+            renderLevelSelect();
+
+        };
+
+
+    /* =====================================================
+       RENDER LEVEL SELECT
+    ===================================================== */
+
+    function renderLevelSelect() {
+
+        if (!levelGrid) {
+
+            return;
+
+        }
+
+
+        levelGrid.innerHTML = "";
+
+
+        /*
+         * Show a useful window of levels.
+         *
+         * Infinite levels continue beyond this.
+         */
+
+        const visibleLevels =
+            Math.max(
+
+                24,
+
+                unlockedLevel + 8
+
+            );
+
+
+        for (
+            let level = 1;
+            level <= visibleLevels;
+            level++
+        ) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "level-card";
+
+
+            if (
+                level <
+                unlockedLevel
+            ) {
+
+                button.classList.add(
+                    "completed"
+                );
+
+            }
+
+
+            if (
+                level ===
+                unlockedLevel
+            ) {
+
+                button.classList.add(
+                    "current"
+                );
+
+            }
+
+
+            if (
+                level >
+                unlockedLevel
+            ) {
+
+                button.classList.add(
+                    "locked"
+                );
+
+                button.disabled =
+                    true;
+
+            }
+
+
+            const number =
+                document.createElement(
+                    "strong"
+                );
+
+
+            number.textContent =
+                level;
+
+
+            const status =
+                document.createElement(
+                    "span"
+                );
+
+
+            if (
+                level <
+                unlockedLevel
+            ) {
+
+                status.textContent =
+                    "✓";
+
+            }
+
+            else if (
+                level ===
+                unlockedLevel
+            ) {
+
+                status.textContent =
+                    "PLAY";
+
+            }
+
+            else {
+
+                status.textContent =
+                    "🔒";
+
+            }
+
+
+            button.appendChild(
+                number
+            );
+
+
+            button.appendChild(
+                status
+            );
+
+
+            if (
+                level <=
+                unlockedLevel
+            ) {
+
+                button.addEventListener(
+
+                    "click",
+
+                    () => {
+
+                        selectLevel(
+                            level
+                        );
+
+                    }
+
+                );
+
+            }
+
+
+            levelGrid.appendChild(
+                button
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       SELECT LEVEL
+    ===================================================== */
+
+    function selectLevel(
+        level
+    ) {
+
+        const requested =
+            Math.max(
+                1,
+                Number(level) || 1
+            );
+
+
+        if (
+            requested >
+            unlockedLevel
+        ) {
+
+            return;
+
+        }
+
+
+        currentLevel =
+            requested;
+
+
+        /*
+         * Selecting an older level
+         * should not destroy the
+         * player's saved progress.
+         *
+         * Score remains available.
+         */
+
+        paused = false;
+
+        busy = false;
+
+        gameStarted = true;
+
+
+        saveProgress();
+
+
+        showGameScreen();
+
+
+        updateScore();
+
+        updateLives();
+
+
+        loadLevel();
+
+    }
+
+
+    window.selectLevel =
+        selectLevel;
+
+
+    /* =====================================================
+       BACK TO DASHBOARD
+    ===================================================== */
+
+    window.backToDashboard =
+        function () {
+
+            if (levelSelectScreen) {
+
+                levelSelectScreen.classList.add(
+                    "hidden"
+                );
+
+            }
+
+
+            showDashboard();
+
+        };
+
+
+    /* =====================================================
+       STARTUP
+    ===================================================== */
+
+    addPauseStyles();
 
 
 })();
